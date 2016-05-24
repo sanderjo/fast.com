@@ -14,3 +14,8 @@ Done
 Highest Speed (kB/s): 12700 aka Mbps 103.3
 
 ```
+
+You need js-beautifier
+```
+sudo pip install jsbeautifier`
+```
