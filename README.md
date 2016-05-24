@@ -19,3 +19,11 @@ You need js-beautifier
 ```
 sudo pip install jsbeautifier`
 ```
+
+Example usage
+```
+$ python fast_com_example_usage.py 
+Start speedtest against fast.com ...
+Result: 53.4 Mbps
+... Done
+```
