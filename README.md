@@ -27,3 +27,15 @@ Start speedtest against fast.com ...
 Result: 53.4 Mbps
 ... Done
 ```
+
+```
+$ python
+Python 2.7.6 (default, Jun 22 2015, 18:00:18) 
+[GCC 4.8.2] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import fast_com
+>>> print fast_com.fast_com(maxtime=6)
+55.6
+
+```
+
