@@ -10,7 +10,7 @@ import os
 import json
 import urllib
 import sys
-import jsbeautifier
+#import jsbeautifier
 import urllib2
 import time
 #import threading
@@ -70,11 +70,26 @@ def fast_com(verbose=False, maxtime=15):
 	if verbose: print "javascript url is", url
 	urlresult = urllib.urlopen(url)
 	allJSstuff = urlresult.read()	# this is a obfuscated Javascript file 
+	'''
+	# Old stuff ... clean, but needed the js-beautifier module
 	res = jsbeautifier.beautify(allJSstuff)	# ... so un-obfuscate it
 	for line in res.split('\n'):
 		if line.find('token:') >= 0:
 			token = line.split('"')[1]
 	if verbose: print "token is", token
+	'''
+
+	'''
+	We're searching for the "token:" in this string:
+	.dummy,DEFAULT_PARAMS={https:!0,token:"YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm",urlCount:3,e
+	'''
+	for line in allJSstuff.split(','):
+		if line.find('token:') >= 0:
+			if verbose: print "line is", line
+			token = line.split('"')[1]
+			if verbose: print "token is", token
+			if token:
+				break
 
 	# https://api.fast.com/netflix/speedtest?https=true&token=YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm&urlCount=3
 	# https://api.fast.com/netflix/speedtest?https=true&token=YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm&urlCount=3
