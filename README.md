@@ -2,11 +2,6 @@
 Python CLI-tool (without need for a GUI) to measure Internet speed with fast.com
 
 
-You need js-beautifier
-```
-sudo pip install jsbeautifier`
-```
-
 Example usage
 ```
 $ python fast_com_example_usage.py 
