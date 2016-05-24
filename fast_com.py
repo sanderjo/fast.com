@@ -173,7 +173,7 @@ def fast_com(verbose=False, maxtime=15):
 
 if __name__ == "__main__": 
 	print "let's go:"
-	fast_com(verbose=True, maxtime=20)
+	fast_com(verbose=True, maxtime=25)
 	print "done"
 
 
