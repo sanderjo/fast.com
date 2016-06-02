@@ -9,6 +9,7 @@ Python CLI-tool (without need for a GUI) to measure Internet speed with fast.com
 import os
 import json
 import urllib
+import urllib2
 import sys
 #import jsbeautifier
 import urllib2
@@ -54,11 +55,22 @@ def findipv4(fqdn):
 	ipv4 = socket.getaddrinfo(fqdn, 80, socket.AF_INET)[0][4][0]
 	return ipv4
 
-def fast_com(verbose=False, maxtime=15, forceipv4=False):
+def findipv6(fqdn):
+	'''
+		find IPv6 address of fqdn
+	'''
+	import socket
+	ipv6 = socket.getaddrinfo(fqdn, 80, socket.AF_INET6)[0][4][0]
+	return ipv6
+
+
+def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
 	'''
 		verbose: print debug output
 		maxtime: max time in seconds to monitor speedtest 
-	'''
+		forceipv4: force speed test over IPv4
+		forceipv6: force speed test over IPv6
+ 	'''
 	# go to fast.com to get the javascript file
 	url = 'https://fast.com/'
 	urlresult = urllib.urlopen(url)
@@ -109,10 +121,20 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False):
 		# force IPv4 by connecting to an IPv4 address of api.fast.com (over ... HTTP)
 		ipv4 = findipv4('api.fast.com')
 		baseurl = 'http://' + ipv4 + '/'	# HTTPS does not work IPv4 addresses, thus use HTTP
+	elif forceipv6:
+		# force IPv6 
+		ipv6 = findipv6('api.fast.com')
+		baseurl = 'http://[' + ipv6 + ']/'
 
 	url = baseurl + 'netflix/speedtest?https=true&token=' + token + '&urlCount=3'	# Not more than 3 possible
 	if verbose: print "API url is", url
-	urlresult = urllib.urlopen(url)
+	try:
+		urlresult = urllib2.urlopen(url, None, 2)	# 2 second time-out
+	except:
+		# not good
+		if verbose: print "No iPv6 connection possible"
+		return -1
+
 	jsonresult = urlresult.read()
 	parsedjson = json.loads(jsonresult)
 	for item in parsedjson:
@@ -202,8 +224,9 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False):
 
 if __name__ == "__main__": 
 	print "let's go:"
-	fast_com(verbose=True, maxtime=10, forceipv4=True)
-	fast_com(verbose=True, maxtime=25)
+	print fast_com(verbose=True, maxtime=10, forceipv4=True)
+	print fast_com(verbose=True, maxtime=10, forceipv6=True)
+	#fast_com(verbose=True, maxtime=25)
 
 	print "done"
 
