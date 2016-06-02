@@ -46,9 +46,15 @@ def application_bytes_to_networkbits(bytes):
 	# 1.0416 for application versus network layers
 
 
+def findipv4(fqdn):
+	'''
+		find IPv4 address of fqdn
+	'''
+	import socket
+	ipv4 = socket.getaddrinfo(fqdn, 80, socket.AF_INET)[0][4][0]
+	return ipv4
 
-
-def fast_com(verbose=False, maxtime=15):
+def fast_com(verbose=False, maxtime=15, forceipv4=False):
 	'''
 		verbose: print debug output
 		maxtime: max time in seconds to monitor speedtest 
@@ -97,7 +103,15 @@ def fast_com(verbose=False, maxtime=15):
 	#url = 'https://api.fast.com/netflix/speedtest?https=true&token=YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm&urlCount=3'
 
 	# With the token, get the (3) speed-test-URLS from api.fast.com:
-	url = 'https://api.fast.com/netflix/speedtest?https=true&token=' + token + '&urlCount=3'	# Not more than 3 possible
+
+	baseurl = 'https://api.fast.com/'
+	if forceipv4:
+		# force IPv4 by connecting to an IPv4 address of api.fast.com (over ... HTTP)
+		ipv4 = findipv4('api.fast.com')
+		baseurl = 'http://' + ipv4 + '/'	# HTTPS does not work IPv4 addresses, thus use HTTP
+
+	url = baseurl + 'netflix/speedtest?https=true&token=' + token + '&urlCount=3'	# Not more than 3 possible
+	if verbose: print "API url is", url
 	urlresult = urllib.urlopen(url)
 	jsonresult = urlresult.read()
 	parsedjson = json.loads(jsonresult)
@@ -188,7 +202,9 @@ def fast_com(verbose=False, maxtime=15):
 
 if __name__ == "__main__": 
 	print "let's go:"
+	fast_com(verbose=True, maxtime=10, forceipv4=True)
 	fast_com(verbose=True, maxtime=25)
+
 	print "done"
 
 
