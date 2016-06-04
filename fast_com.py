@@ -12,19 +12,9 @@ import urllib
 import urllib2
 import sys
 #import jsbeautifier
-import urllib2
 import time
 #import threading
 from threading import Thread
-
-
-def gethtml(url):
-	print "fetching testfile:", url
-	response = urllib2.urlopen(url)
-	result = response.read()
-	print "Fetched: ", len(result)
-	return len(result)
-
 
 
 def gethtmlresult(url,result,index):
@@ -42,6 +32,7 @@ def gethtmlresult(url,result,index):
 	    i=i+1
 
 def application_bytes_to_networkbits(bytes):
+	# convert bytes (at application layer) to bits (at network layer)
 	return bytes * 8 * 1.0415
 	# 8 for bits versus bytes
 	# 1.0416 for application versus network layers
@@ -73,7 +64,11 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
  	'''
 	# go to fast.com to get the javascript file
 	url = 'https://fast.com/'
-	urlresult = urllib.urlopen(url)
+	try:
+		urlresult = urllib.urlopen(url)
+	except:
+		# no connection at all?
+		return 0
 	response = urlresult.read()
 	for line in response.split('\n'):
 		# We're looking for a line like
@@ -89,7 +84,7 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
 	urlresult = urllib.urlopen(url)
 	allJSstuff = urlresult.read()	# this is a obfuscated Javascript file 
 	'''
-	# Old stuff ... clean, but needed the js-beautifier module
+	# OLD STUFF ... beautiful, but needs the js-beautifier module, which was a non-stardard requirement
 	res = jsbeautifier.beautify(allJSstuff)	# ... so un-obfuscate it
 	for line in res.split('\n'):
 		if line.find('token:') >= 0:
@@ -114,8 +109,8 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
 	# lynx --dump  'https://api.fast.com/netflix/speedtest?https=true&token=YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm&urlCount=3'  | python -mjson.tool
 	#url = 'https://api.fast.com/netflix/speedtest?https=true&token=YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm&urlCount=3'
 
-	# With the token, get the (3) speed-test-URLS from api.fast.com:
 
+	# With the token, get the (3) speed-test-URLS from api.fast.com (which will be in JSON format):
 	baseurl = 'https://api.fast.com/'
 	if forceipv4:
 		# force IPv4 by connecting to an IPv4 address of api.fast.com (over ... HTTP)
@@ -132,14 +127,11 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
 		urlresult = urllib2.urlopen(url, None, 2)	# 2 second time-out
 	except:
 		# not good
-		if verbose: print "No iPv6 connection possible"
-		return -1
+		if verbose: print "No connection possible"	# probably IPv6, or just no network
+		return 0	# no connection, thus no speed
 
 	jsonresult = urlresult.read()
 	parsedjson = json.loads(jsonresult)
-	for item in parsedjson:
-		if verbose: print item['url']
-
 
 	# Prepare for getting those URLs in a threaded way:
 	amount = len(parsedjson)
@@ -147,31 +139,21 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
 	threads = [None] * amount
 	results = [0] * amount
 	urls = [None] * amount
-	i = 0 # or 1
-	for item in parsedjson:
-	    urls[i] = item['url']
+	i = 0
+	for jsonelement in parsedjson:
+	    urls[i] = jsonelement['url']	# fill out speed test url from the json format
+            if verbose: print jsonelement['url']
 	    i = i+1
 
 	# Let's check whether it's IPv6:
-	import socket
-	# socket.getaddrinfo("www.google.com", None, socket.AF_INET)
-	# socket.getaddrinfo("www.google.com", None, socket.AF_INET6)
 	for url in urls:
-		#print url
 		fqdn = url.split('/')[2]
-		#print fqdn
 		try:
 			socket.getaddrinfo(fqdn, None, socket.AF_INET6)
 			if verbose: print "IPv6"
 		except:
-			# print "IPv4"
 			pass
-		try:
-			socket.getaddrinfo(fqdn, None, socket.AF_INET)
-			#print "IPv4"
-		except:
-			# print "IPv6"
-			pass
+
 
 	# Now start the threads
 	for i in range(len(threads)):
@@ -223,11 +205,17 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
 
 
 if __name__ == "__main__": 
-	print "let's go:"
-	print fast_com(verbose=True, maxtime=10, forceipv4=True)
-	print fast_com(verbose=True, maxtime=10, forceipv6=True)
+	print "let's speed test:"
+	print "\nSpeed test, without logging:"
+	print fast_com()
+	print "\nSpeed test, with logging:"
+	print fast_com(verbose=True)
+	print "\nSpeed test, IPv4, with verbose logging:"
+	print fast_com(verbose=True, maxtime=18, forceipv4=True)
+	print "\nSpeed test, IPv6:"
+	print fast_com(maxtime=12, forceipv6=True)
 	#fast_com(verbose=True, maxtime=25)
 
-	print "done"
+	print "\ndone"
 
 
