@@ -214,7 +214,8 @@ if __name__ == "__main__":
 	print fast_com(verbose=True, maxtime=18, forceipv4=True)
 	print "\nSpeed test, IPv6:"
 	print fast_com(maxtime=12, forceipv6=True)
-	#fast_com(verbose=True, maxtime=25)
+	print "\n30 second speed test:"
+	fast_com(verbose=True, maxtime=30)
 
 	print "\ndone"
 
