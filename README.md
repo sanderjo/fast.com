@@ -4,26 +4,25 @@ Python CLI-tool (without need for a GUI) to measure Internet speed with fast.com
 
 Example usage
 ```
-$ python fast_com_example_usage.py 
+$ python3 fast_com_example_usage.py 
 Start speedtest against fast.com ...
 Result: 53.4 Mbps
 ... Done
 ```
 
 ```
-$ python
-Python 2.7.6 (default, Jun 22 2015, 18:00:18) 
-[GCC 4.8.2] on linux2
+$ python3
+Python 3.6.1 (default, Jun 27 2017, 14:35:15) 
+[GCC 7.1.1 20170622 (Red Hat 7.1.1-3)] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import fast_com
->>> print fast_com.fast_com(maxtime=6)
-55.6
-
+>>> print(fast_com.fast_com(maxtime=6))
+32.5
 ```
 
 Full verbose:
 ```
-$ python fast_com.py
+$ python3 fast_com.py
 let's go:
 javascript url is https://fast.com/app-ab2f99.js
 token is YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm
@@ -41,8 +40,4 @@ Loop 6 Total MB 58 Delta MB 3 Speed kB/s: 1100 aka Mbps 9.0
 Loop 7 Total MB 60 Delta MB 1 Speed kB/s: 500 aka Mbps 4.1
 Highest Speed (kB/s): 6533 aka Mbps  53.2
 done
-
 ```
-
-
-
