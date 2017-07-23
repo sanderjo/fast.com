@@ -6,8 +6,7 @@ Python CLI-tool to measure Internet speed with fast.com
 
 
 import json
-import urllib
-import urllib2
+import requests
 import socket
 import time
 from threading import Thread
@@ -18,15 +17,11 @@ def gethtmlresult(url, result, index):
     get the stuff from url in chuncks of size CHUNK, and keep writing
     the number of bytes retrieved into result[index]
     '''
-    req = urllib2.urlopen(url)
-    CHUNK = 100 * 1024
-    i = 1
-    while True:
-        chunk = req.read(CHUNK)
-        if not chunk:
-            break
-        result[index] = i * CHUNK
-        i = i + 1
+    req = requests.get(url, stream=True)
+    CHUNK_SIZE = 100 * 1024
+    for i, chunk in enumerate(req.iter_content(CHUNK_SIZE)):
+        result[index] = i * CHUNK_SIZE
+        i += 1
 
 
 def application_bytes_to_networkbits(bytes):
@@ -62,11 +57,12 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
     # go to fast.com to get the javascript file
     url = 'https://fast.com/'
     try:
-        urlresult = urllib.urlopen(url)
-    except:
+        urlresult = requests.get(url)
+    except Exception as e:
+        print(e)
         # no connection at all?
         return 0
-    response = urlresult.read()
+    response = urlresult.text
     for line in response.split('\n'):
         # We're looking for a line like
         # <script src="/app-40647a.js"></script>
@@ -77,8 +73,8 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
     url = 'https://fast.com' + jsname
     if verbose:
         print("javascript url is", url)
-    urlresult = urllib.urlopen(url)
-    allJSstuff = urlresult.read()
+    urlresult = requests.get(url)
+    allJSstuff = urlresult.text
     for line in allJSstuff.split(','):
         if line.find('token:') >= 0:
             if verbose:
@@ -107,15 +103,16 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
     if verbose:
         print("API url is", url)
     try:
-        urlresult = urllib2.urlopen(url, None, 2)   # 2 second time-out
-    except:
+        urlresult = requests.post(url, data=None, timeout=2)
+    except Exception as e:
+        print(e)
         # not good
         if verbose:
             # probably IPv6, or just no network
             print("No connection possible")
             return 0    # no connection, thus no speed
 
-    jsonresult = urlresult.read()
+    jsonresult = urlresult.text
     parsedjson = json.loads(jsonresult)
 
     # Prepare for getting those URLs in a threaded way:
@@ -154,7 +151,7 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
     sleepseconds = 3    # 3 seconds sleep
     lasttotal = 0
     highestspeedkBps = 0
-    nrloops = maxtime / sleepseconds
+    nrloops = maxtime // sleepseconds
     for loop in range(nrloops):
         total = 0
         for i in range(len(threads)):
@@ -169,9 +166,10 @@ def fast_com(verbose=False, maxtime=15, forceipv4=False, forceipv6=False):
             print("Loop", loop, "Total MB", total_mb, "Delta_MB", delta_mb)
             print("Speed kB/s:", speedkBps, "aka Mbps ", mbps)
             lasttotal = total
-            if speedkBps > highestspeedkBps:
-                highestspeedkBps = speedkBps
-            time.sleep(sleepseconds)
+
+        if speedkBps > highestspeedkBps:
+            highestspeedkBps = speedkBps
+        time.sleep(sleepseconds)
 
     Mbps = (application_bytes_to_networkbits(highestspeedkBps)/1024)
     Mbps = float("%.1f" % Mbps)
