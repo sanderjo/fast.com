@@ -218,5 +218,3 @@ if __name__ == "__main__":
 	fast_com(verbose=True, maxtime=30)
 
 	print "\ndone"
-
-
